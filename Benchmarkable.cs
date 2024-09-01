@@ -84,6 +84,29 @@ public class Benchmarkable
     }
 
     [Benchmark]
+    public Dictionary<string, object> WithReflectionNoLock() => WithReflectionNoLock(Obj);
+    public Dictionary<string, object> WithReflectionNoLock(POCO obj)
+    {
+        var result = new Dictionary<string, object>();
+
+        var type = obj.GetType();
+
+            if(!_knownTypes.TryGetValue(type, out PropertyInfo[] properties))
+            {
+                properties = type.GetProperties();
+                _knownTypes.Add(type, properties);
+
+            }
+
+        foreach(var prop in properties)
+        {
+            result.Add(prop.Name, prop.GetValue(obj, null));
+        }
+
+        return result;
+    }
+
+    [Benchmark]
     public Dictionary<string, object> WithNewtonsoft() => WithNewtonsoft(Obj);
     public Dictionary<string, object> WithNewtonsoft(POCO obj)
     {
